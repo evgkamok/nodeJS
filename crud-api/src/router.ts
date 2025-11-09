@@ -86,5 +86,25 @@ export async function router(req: IncomingMessage, res: ServerResponse) {
 			sendJSON(res, 200, updateUser)
 			return
 		}
-	} catch (error) {}
+
+		// DELETE
+		if (method === 'DELETE' && pathname.startsWith('/api/users/')) {
+			const userId = pathname.split('/')[3]
+
+			const deleted = db.deleteUser(userId)
+
+			if (!deleted) {
+				sendError(res, 404, 'User not found')
+				return
+			}
+
+			sendJSON(res, 204, null)
+			return
+		}
+
+		sendError(res, 404, 'Endpoint not found')
+	} catch (error) {
+		console.error('Server error:', error)
+		sendError(res, 500, 'internal server error')
+	}
 }
