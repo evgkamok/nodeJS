@@ -1,6 +1,6 @@
 import { WebSocketServer } from 'ws'
 
-export function createWebSocketServer(port: number) {
+export function createWebSocketServer(port) {
 	const wss = new WebSocketServer({ port })
 
 	wss.on('connection', ws => {

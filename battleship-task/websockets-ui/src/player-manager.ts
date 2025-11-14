@@ -30,17 +30,24 @@ export class PlayerManager {
 				}
 			}
 		} else {
+			const newPlayer: Player = {
+				name,
+				password,
+				index: Date.now().toString(),
+				wins: 0,
+				ws,
+			}
+			this.players.set(name, newPlayer)
+
 			return {
-				id: 0,
 				type: 'reg',
 				data: {
-					name,
-					password,
-					index: 0, // TODO:
-					wins: 0,
+					name: newPlayer.name,
+					index: newPlayer.index,
 					error: false,
 					errorText: '',
 				},
+				id: 0,
 			}
 		}
 	}

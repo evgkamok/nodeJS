@@ -8,6 +8,6 @@ export interface Player {
 	name: string
 	password: string
 	index: number | string
-	wins: boolean
+	wins: number
 	ws: any
 }
