@@ -14,10 +14,12 @@
 	"license": "ISC",
 	"devDependencies": {
 		"@types/node": "^24.10.1",
+		"@types/ws": "^8.18.1",
 		"nodemon": "^2.0.16",
+		"tsx": "^4.20.6",
 		"typescript": "^5.9.3"
 	},
 	"dependencies": {
-		"ws": "^8.8.0"
+		"ws": "^8.18.3"
 	}
 }
