@@ -33,7 +33,7 @@ function loginPlayer(
 	return null
 }
 
-function registerNewPlayer(
+function registrationNewPlayer(
 	regPlayerData: RegistrationData,
 	ws: WebSocket,
 	playerManager: PlayerManager
@@ -43,7 +43,7 @@ function registerNewPlayer(
 	return playerManager.addPlayer(name, password, ws)
 }
 
-export function handleRegistration(
+export function registrationUserHandler(
 	message: ClientMessage,
 	ws: WebSocket,
 	playerManager: PlayerManager
@@ -54,7 +54,7 @@ export function handleRegistration(
 		let player = loginPlayer(regData, ws, playerManager)
 
 		if (!player) {
-			player = registerNewPlayer(regData, ws, playerManager)
+			player = registrationNewPlayer(regData, ws, playerManager)
 		}
 
 		sendSuccessResponse(ws, player)

@@ -1,8 +1,13 @@
 import { httpServer } from './src/http_server/index.js'
 import { WebSocketServer } from 'ws'
-import { handleRegistration } from './src/handlers/registrationHandler.js'
-import { PlayerManager } from './src/models/PlayerManager.js'
 import { ClientMessage } from './src/types/index.js'
+
+import { registrationUserHandler } from './src/handlers/registrationHandler.js'
+import { createRoomHandler } from './src/handlers/createRoomHandler.js'
+import { addUserToRoomHandler } from './src/handlers/addUserToRoomHandler.js'
+
+import { PlayerManager } from './src/models/PlayerManager.js'
+import { RoomManager } from './src/models/RoomManager.js'
 
 const HTTP_PORT = 8181
 const WS_PORT = 3000
@@ -14,6 +19,7 @@ const wss = new WebSocketServer({ port: WS_PORT })
 console.log(`🚀 Start ws-server launched on the ws://localhost:${WS_PORT}`)
 
 const playerManager = new PlayerManager()
+const roomManager = new RoomManager()
 
 wss.on('connection', ws => {
 	console.log('New client connected...')
@@ -25,7 +31,13 @@ wss.on('connection', ws => {
 
 		switch (message.type) {
 			case 'reg':
-				handleRegistration(message, ws, playerManager)
+				registrationUserHandler(message, ws, playerManager)
+				break
+			case 'create_room':
+				createRoomHandler(ws, playerManager, roomManager, wss)
+				break
+			case 'add_user_to_room':
+				addUserToRoomHandler(message, ws, playerManager, roomManager, wss)
 				break
 
 			default:

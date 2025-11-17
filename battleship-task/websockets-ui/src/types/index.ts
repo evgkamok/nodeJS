@@ -17,3 +17,18 @@ export interface Player {
 	index: number
 	ws: WebSocket
 }
+
+// ROOM TYPES
+
+export interface Room {
+	roomId: string
+	roomUsers: Player[]
+}
+
+export interface RoomInfo {
+	roomId: string
+	roomUsers: Array<{
+		name: string
+		index: number
+	}>
+}

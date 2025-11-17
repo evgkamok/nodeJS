@@ -30,6 +30,16 @@ export class PlayerManager {
 		return this.players.get(index)
 	}
 
+	getPlayerByWs(ws: WebSocket): Player | null {
+		for (const player of this.players.values()) {
+			if (ws === player.ws) {
+				return player
+			}
+		}
+
+		return null
+	}
+
 	updatePlayerConnection(index: number, ws: WebSocket): void {
 		const player = this.players.get(index)
 		if (player) {
