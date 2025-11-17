@@ -8,6 +8,7 @@ import { addUserToRoomHandler } from './src/handlers/addUserToRoomHandler.js'
 
 import { PlayerManager } from './src/models/PlayerManager.js'
 import { RoomManager } from './src/models/RoomManager.js'
+import { ServerContext } from './src/ServerContext.js'
 
 const HTTP_PORT = 8181
 const WS_PORT = 3000
@@ -20,6 +21,8 @@ console.log(`🚀 Start ws-server launched on the ws://localhost:${WS_PORT}`)
 
 const playerManager = new PlayerManager()
 const roomManager = new RoomManager()
+
+const serverContext = new ServerContext(wss, playerManager, roomManager)
 
 wss.on('connection', ws => {
 	console.log('New client connected...')
@@ -34,10 +37,10 @@ wss.on('connection', ws => {
 				registrationUserHandler(message, ws, playerManager)
 				break
 			case 'create_room':
-				createRoomHandler(ws, playerManager, roomManager, wss)
+				createRoomHandler(ws, serverContext)
 				break
 			case 'add_user_to_room':
-				addUserToRoomHandler(message, ws, playerManager, roomManager, wss)
+				addUserToRoomHandler(message, ws, serverContext)
 				break
 
 			default:
