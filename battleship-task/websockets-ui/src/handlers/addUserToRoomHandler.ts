@@ -1,29 +1,38 @@
 import { WebSocket } from 'ws'
 import { ServerContext } from '../ServerContext.js'
 import { ClientMessage } from '../types/index.js'
-import { createGameHandler } from '../handlers/createGameHandler.js'
 
-export function addUserToRoomHandler(
+export function addPlayerToRoomHandler(
 	message: ClientMessage,
 	ws: WebSocket,
 	context: ServerContext
 ): void {
-	const data = JSON.parse(message.data)
+	const { indexRoom } = JSON.parse(message.data)
 	const player = context.playerManager.getPlayerByWs(ws)
 
 	if (!player) {
-		console.log('Add user to room failed. Player not found')
+		console.log('Add player to room failed. Player not found')
 		return
 	}
 
-	const success = context.roomManager.addPlayerToRoom(data.indexRoom, player)
+	const isConnected = context.roomManager.addPlayerToRoom(
+		indexRoom,
+		player
+	)
 
-	if (!success) {
+	if (isConnected) {
 		console.log(
-			`Add user to room failed. Player ${player.name} can't connect to this room`
+			`Player ${player.name} successfully connected to the room ${indexRoom}`
 		)
-		return
+	} else {
+		console.log(
+			`Player ${player.name} failed to connected to the room ${indexRoom}`
+		)
 	}
 
-	createGameHandler(data.indexRoom, context.roomManager, context.wss)
+	context.gameManager.createGame(
+		indexRoom,
+		context.roomManager,
+		context.wss
+	)
 }

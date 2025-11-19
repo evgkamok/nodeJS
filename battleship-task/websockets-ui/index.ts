@@ -4,9 +4,11 @@ import { ClientMessage } from './src/types/index.js'
 
 import { registrationUserHandler } from './src/handlers/registrationHandler.js'
 import { createRoomHandler } from './src/handlers/createRoomHandler.js'
-import { addUserToRoomHandler } from './src/handlers/addUserToRoomHandler.js'
+import { addPlayerToRoomHandler } from './src/handlers/addUserToRoomHandler.js'
+import { addShipsHandler } from './src/handlers/addShipsHandler.js'
 
 import { PlayerManager } from './src/models/PlayerManager.js'
+import { GameManager } from './src/models/GameManager'
 import { RoomManager } from './src/models/RoomManager.js'
 import { ServerContext } from './src/ServerContext.js'
 
@@ -17,12 +19,20 @@ console.log(`🚀 Start static http server on the ${HTTP_PORT} port!`)
 httpServer.listen(HTTP_PORT)
 
 const wss = new WebSocketServer({ port: WS_PORT })
-console.log(`🚀 Start ws-server launched on the ws://localhost:${WS_PORT}`)
+console.log(
+	`🚀 Start ws-server launched on the ws://localhost:${WS_PORT}`
+)
 
 const playerManager = new PlayerManager()
 const roomManager = new RoomManager()
+const gameManager = new GameManager()
 
-const serverContext = new ServerContext(wss, playerManager, roomManager)
+const serverContext = new ServerContext(
+	wss,
+	playerManager,
+	roomManager,
+	gameManager
+)
 
 wss.on('connection', ws => {
 	console.log('New client connected...')
@@ -34,15 +44,19 @@ wss.on('connection', ws => {
 
 		switch (message.type) {
 			case 'reg':
-				registrationUserHandler(message, ws, playerManager)
+				registrationUserHandler(message, ws, serverContext)
 				break
 			case 'create_room':
 				createRoomHandler(ws, serverContext)
 				break
 			case 'add_user_to_room':
-				addUserToRoomHandler(message, ws, serverContext)
+				addPlayerToRoomHandler(message, ws, serverContext)
 				break
-
+			case 'add_ships':
+				addShipsHandler(message, ws, serverContext)
+				break
+			case 'attack':
+				break
 			default:
 				console.log(`Unknown type - ${message.type}`)
 		}

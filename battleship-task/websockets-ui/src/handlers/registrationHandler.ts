@@ -1,6 +1,11 @@
 import { PlayerManager } from './../models/PlayerManager.js'
-import { ClientMessage, Player, RegistrationData } from '../types/index.js'
+import {
+	ClientMessage,
+	Player,
+	RegistrationData,
+} from '../types/index.js'
 import { WebSocket } from 'ws'
+import { ServerContext } from '../ServerContext.js'
 
 function sendSuccessResponse(ws: WebSocket, player: Player): void {
 	const response = {
@@ -46,19 +51,25 @@ function registrationNewPlayer(
 export function registrationUserHandler(
 	message: ClientMessage,
 	ws: WebSocket,
-	playerManager: PlayerManager
+	context: ServerContext
 ): void {
 	try {
 		const regData: RegistrationData = JSON.parse(message.data)
 
-		let player = loginPlayer(regData, ws, playerManager)
+		let player = loginPlayer(regData, ws, context.playerManager)
 
 		if (!player) {
-			player = registrationNewPlayer(regData, ws, playerManager)
+			player = registrationNewPlayer(
+				regData,
+				ws,
+				context.playerManager
+			)
 		}
 
 		sendSuccessResponse(ws, player)
 		console.log(`Success authorize - ${player.name}`)
+
+		context.roomManager.sendRoomUpdate(context.wss)
 	} catch (error) {
 		console.error(`Error handle for request type = REG`)
 		ws.send(

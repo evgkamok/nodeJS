@@ -1,69 +1,67 @@
+import { WebSocketServer } from 'ws'
 import { Player, Room, RoomInfo } from '../types/index.js'
+import { ServerContext } from '../ServerContext.js'
 import { randomUUID } from 'crypto'
 
 export class RoomManager {
 	private rooms: Map<string, Room> = new Map()
 
-	createRoom(player: Player): Room {
-		const roomId = randomUUID()
+	createRoom(playerRoomCreator: Player, context: ServerContext) {
+		const roomId = randomUUID().substring(0, 6)
 
 		const room: Room = {
 			roomId,
-			roomUsers: [player],
+			roomUsers: [playerRoomCreator],
 		}
 
 		this.rooms.set(roomId, room)
-		console.log(`Room ${roomId}, has been created by player - ${player.name}`)
 
-		return room
+		this.sendRoomUpdate(context.wss)
+
+		console.log(
+			`Room ${roomId}, has been created by player - ${playerRoomCreator.name}`
+		)
 	}
 
-	getRoomsInfo(): RoomInfo[] {
-		const roomsArray: RoomInfo[] = []
+	sendRoomUpdate(wss: WebSocketServer): void {
+		const roomsWithOnePlayer: RoomInfo[] = []
 
 		for (const room of this.rooms.values()) {
 			if (room.roomUsers.length === 1) {
-				roomsArray.push({
+				roomsWithOnePlayer.push({
 					roomId: room.roomId,
-					roomUsers: room.roomUsers.map(player => ({
-						name: player.name,
-						index: player.index,
-					})),
+					roomUsers: [...room.roomUsers],
 				})
 			}
 		}
 
-		console.log(`Find rooms count - ${roomsArray.length}`)
+		const updateMessage = {
+			type: 'update_room',
+			data: JSON.stringify(roomsWithOnePlayer),
+			id: 0,
+		}
 
-		return roomsArray
-	}
-
-	getRoomById(roomId: string): Room | undefined {
-		return this.rooms.get(roomId)
+		wss.clients.forEach(player => {
+			if (player.readyState === 1) {
+				player.send(JSON.stringify(updateMessage))
+			}
+		})
 	}
 
 	addPlayerToRoom(roomId: string, player: Player): boolean {
-		const room = this.rooms.get(roomId)
+		const room = this.getRoomById(roomId)
 
 		if (!room) {
 			console.log(`Room - ${roomId} not found`)
 			return false
 		}
 
-		if (room.roomUsers.length >= 2) {
-			console.log(`Room - ${roomId} fulled`)
-			return false
-		}
-
-		const alreadyInRoom = room.roomUsers.some(u => u.index === player.index)
-		if (alreadyInRoom) {
-			console.log(`Player ${player.name} already in the room ${roomId}`)
-			return true
-		}
-
 		room.roomUsers.push(player)
-		console.log(`Player ${player.name} connect to the room - ${roomId}`)
 
 		return true
+	}
+
+	getRoomById(roomId: string): Room | undefined {
+		return this.rooms.get(roomId)
 	}
 }

@@ -1,17 +1,17 @@
 import { WebSocket } from 'ws'
-import { Room } from '../types/index.js'
-import { broadcastRoomUpdates } from '../utils/broadcast.js'
 import { ServerContext } from '../ServerContext.js'
 
-export function createRoomHandler(ws: WebSocket, context: ServerContext) {
-	const player = context.playerManager.getPlayerByWs(ws)
+export function createRoomHandler(
+	ws: WebSocket,
+	context: ServerContext
+): void {
+	try {
+		const playerRoomCreator = context.playerManager.getPlayerByWs(ws)
 
-	if (!player) {
-		console.log('Not found player for create room')
-		return
+		if (playerRoomCreator) {
+			context.roomManager.createRoom(playerRoomCreator, context)
+		}
+	} catch (error) {
+		console.log('Create room error - ', error)
 	}
-
-	const room: Room = context.roomManager.createRoom(player)
-
-	broadcastRoomUpdates(context.wss, context.roomManager)
 }

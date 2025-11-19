@@ -32,3 +32,22 @@ export interface RoomInfo {
 		index: number
 	}>
 }
+
+// SHIPS TYPES
+export interface Ship {
+	position: {
+		x: number
+		y: number
+	}
+	direction: boolean
+	length: number
+	type: 'small' | 'medium ' | 'large' | 'huge'
+}
+
+export interface AddShipData {
+	gameId: string
+	ships: Ship[]
+	indexPlayer: number
+}
+
+// GAME TYPES

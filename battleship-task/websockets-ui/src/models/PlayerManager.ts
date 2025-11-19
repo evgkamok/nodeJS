@@ -13,7 +13,9 @@ export class PlayerManager {
 		}
 
 		this.players.set(newPlayer.index, newPlayer)
-		console.log(`New player has been added: ${name} (ID: ${newPlayer.index})`)
+		console.log(
+			`New player has been added: ${name} (ID: ${newPlayer.index})`
+		)
 		return newPlayer
 	}
 
@@ -26,7 +28,7 @@ export class PlayerManager {
 		return undefined
 	}
 
-	getPlayer(index: number): Player | undefined {
+	getPlayerById(index: number): Player | undefined {
 		return this.players.get(index)
 	}
 
@@ -38,13 +40,5 @@ export class PlayerManager {
 		}
 
 		return null
-	}
-
-	updatePlayerConnection(index: number, ws: WebSocket): void {
-		const player = this.players.get(index)
-		if (player) {
-			player.ws = ws
-			console.log(`Refresh ws connection for player with name - ${player.name}`)
-		}
 	}
 }
