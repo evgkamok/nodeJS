@@ -15,24 +15,5 @@ export function addPlayerToRoomHandler(
 		return
 	}
 
-	const isConnected = context.roomManager.addPlayerToRoom(
-		indexRoom,
-		player
-	)
-
-	if (isConnected) {
-		console.log(
-			`Player ${player.name} successfully connected to the room ${indexRoom}`
-		)
-	} else {
-		console.log(
-			`Player ${player.name} failed to connected to the room ${indexRoom}`
-		)
-	}
-
-	context.gameManager.createGame(
-		indexRoom,
-		context.roomManager,
-		context.wss
-	)
+	context.roomManager.addPlayerToRoom(indexRoom, player, context)
 }

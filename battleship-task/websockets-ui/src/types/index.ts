@@ -22,11 +22,6 @@ export interface Player {
 
 export interface Room {
 	roomId: string
-	roomUsers: Player[]
-}
-
-export interface RoomInfo {
-	roomId: string
 	roomUsers: Array<{
 		name: string
 		index: number
@@ -50,4 +45,11 @@ export interface AddShipData {
 	indexPlayer: number
 }
 
-// GAME TYPES
+// GAME ATTACK
+
+export interface AttackData {
+	x: number
+	y: number
+	gameId: string
+	indexPlayer: number
+}
