@@ -19,7 +19,6 @@ export interface Player {
 }
 
 // ROOM TYPES
-
 export interface Room {
 	roomId: string
 	roomUsers: Array<{
@@ -37,6 +36,7 @@ export interface Ship {
 	direction: boolean
 	length: number
 	type: 'small' | 'medium ' | 'large' | 'huge'
+	hits?: Set<string>
 }
 
 export interface AddShipData {
@@ -46,10 +46,21 @@ export interface AddShipData {
 }
 
 // GAME ATTACK
+interface PlayerInGame {
+	indexPlayer: number
+	ships: Ship[]
+	ws: WebSocket
+}
+
+export interface Game {
+	gameId: string
+	players: PlayerInGame[]
+	currentPlayer: number
+}
 
 export interface AttackData {
+	gameId: string
 	x: number
 	y: number
-	gameId: string
 	indexPlayer: number
 }

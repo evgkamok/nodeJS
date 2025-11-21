@@ -1,23 +1,9 @@
 import { AddShipData, AttackData, Room, Ship } from '../types/index.js'
 import { randomUUID } from 'crypto'
-
-import { RoomManager } from '../models/RoomManager.js'
-import { WebSocket, WebSocketServer } from 'ws'
+import { Game } from '../types/index.js'
+import { WebSocket } from 'ws'
 import { PlayerManager } from './PlayerManager.js'
-
-interface PlayerInGame {
-	indexPlayer: number
-	ships: Ship[]
-	hits: Set<string> | null
-	miss: Set<string> | null
-	ws: WebSocket
-}
-
-interface Game {
-	gameId: string
-	players: PlayerInGame[]
-	currentPlayer: number
-}
+import { ServerContext } from '../ServerContext.js'
 
 export class GameManager {
 	private games: Map<string, Game> = new Map()
@@ -54,8 +40,6 @@ export class GameManager {
 				indexPlayer,
 				ships,
 				ws,
-				hits: null,
-				miss: null,
 			})
 
 			existingGame.players.forEach(player => {
@@ -73,8 +57,6 @@ export class GameManager {
 						indexPlayer,
 						ships,
 						ws,
-						hits: null,
-						miss: null,
 					},
 				],
 				currentPlayer: indexPlayer,
@@ -95,7 +77,6 @@ export class GameManager {
 	}
 
 	sendTurn(ws: WebSocket, currentPlayer: number) {
-		console.log('currentPlayer', currentPlayer)
 		const turnMessage = {
 			type: 'turn',
 			data: JSON.stringify({
@@ -106,60 +87,116 @@ export class GameManager {
 		ws.send(JSON.stringify(turnMessage))
 	}
 
-	sendAttack(attackData: AttackData, ws: WebSocket) {
+	sendAttack(attackData: AttackData, serverContext: ServerContext) {
 		const { x, y, gameId, indexPlayer } = attackData
 
-		const currentGame = this.games.get(gameId)
+		const game = this.games.get(gameId)
 
-		const enemyPlayer = currentGame?.players.find(
+		if (!game) {
+			return
+		}
+
+		if (game.currentPlayer !== indexPlayer) {
+			return
+		}
+
+		const currentPlayer = game.players.find(
+			player => player.indexPlayer === indexPlayer
+		)
+
+		const enemyPlayer = game.players.find(
 			player => player.indexPlayer !== indexPlayer
 		)
 
-		const cellAttack = `${x}, ${y}`
-
-		if (
-			enemyPlayer?.miss?.has(cellAttack) ||
-			enemyPlayer?.hits?.has(cellAttack)
-		) {
-			console.log(`This cell - ${cellAttack} was attacked earlier`)
+		if (!currentPlayer || !enemyPlayer) {
 			return
 		}
 
-		if (indexPlayer !== currentGame?.currentPlayer) {
-			return
+		const cellAttack = { x, y }
+
+		const attackResult = this.checkHit(enemyPlayer.ships, cellAttack)
+
+		const attackMessage = {
+			type: 'attack',
+			data: JSON.stringify({
+				position: cellAttack,
+				currentPlayer: currentPlayer.indexPlayer,
+				status: attackResult,
+			}),
+			id: 0,
 		}
 
-		if (enemyPlayer) {
-			for (const ship of enemyPlayer?.ships.values()) {
-				const shipX = ship.position.x
-				const shipY = ship.position.y
-				const shipXY = `${shipX}, ${shipY}`
+		currentPlayer.ws.send(JSON.stringify(attackMessage))
+		enemyPlayer.ws.send(JSON.stringify(attackMessage))
 
-				console.log('CELL Attack', cellAttack)
-				console.log('ENEMY shipXY', shipXY)
+		const isHit = attackResult === 'killed' || 'shot'
+		const nexPlayer = isHit
+			? currentPlayer.indexPlayer
+			: enemyPlayer.indexPlayer
 
-				if (cellAttack === shipXY) {
-					console.log('POPAL')
-				}
-			}
+		this.sendTurn(currentPlayer.ws, nexPlayer)
+		this.sendTurn(enemyPlayer.ws, nexPlayer)
+
+		if (!isHit) {
+			game.currentPlayer = enemyPlayer.indexPlayer
 		}
 	}
-}
 
-/* 
-  indexPlayer: 1763655674970,
-  ships: [
-    { position: [Object], direction: false, type: 'huge', length: 4 },
-    { position: [Object], direction: false, type: 'large', length: 3 },
-    { position: [Object], direction: true, type: 'large', length: 3 },
-    { position: [Object], direction: false, type: 'medium', length: 2 },
-    { position: [Object], direction: false, type: 'medium', length: 2 },
-    { position: [Object], direction: false, type: 'medium', length: 2 },
-    { position: [Object], direction: true, type: 'small', length: 1 },
-    { position: [Object], direction: false, type: 'small', length: 1 },
-    { position: [Object], direction: false, type: 'small', length: 1 },
-    { position: [Object], direction: true, type: 'small', length: 1 }
-*/
+	private checkHit(ships: Ship[], cellAttack: { x: number; y: number }) {
+		for (const ship of ships) {
+			if (!ship.hits) {
+				ship.hits = new Set()
+			}
+
+			const shipCells = this.getShipCells(ship)
+
+			const hitCell = shipCells.find(
+				cell => cell.x === cellAttack.x && cell.y === cellAttack.y
+			)
+
+			if (hitCell) {
+				const cellKey = `${cellAttack.x}, ${cellAttack.y}`
+
+				console.log(ship.hits)
+				console.log(cellKey)
+				if (ship.hits.has(cellKey)) {
+					return 'shot'
+				}
+
+				ship.hits.add(cellKey)
+
+				const isKilled = ship.hits.size === ship.length
+
+				return isKilled ? 'killed' : 'shot'
+			}
+		}
+
+		return 'miss'
+	}
+
+	private getShipCells(ship: Ship): Array<{ x: number; y: number }> {
+		const shipCells = []
+
+		if (ship.direction) {
+			// vertical placement
+			for (let i = 0; i < ship.length; i++) {
+				shipCells.push({
+					x: ship.position.x,
+					y: ship.position.y + i,
+				})
+			}
+		} else {
+			//  horizontal placement
+			for (let i = 0; i < ship.length; i++) {
+				shipCells.push({
+					x: ship.position.x + i,
+					y: ship.position.y,
+				})
+			}
+		}
+		return shipCells
+	}
+}
 
 // [
 // {
@@ -174,52 +211,5 @@ export class GameManager {
 //   type: 'large',
 //   length: 3
 // },
-//   {
-//     position: { x: 0, y: 1 },
-//     direction: false,
-//     type: 'large',
-//     length: 3
-//   },
-//   {
-//     position: { x: 1, y: 7 },
-//     direction: true,
-//     type: 'medium',
-//     length: 2
-//   },
-//   {
-//     position: { x: 5, y: 5 },
-//     direction: true,
-//     type: 'medium',
-//     length: 2
-//   },
-//   {
-//     position: { x: 5, y: 8 },
-//     direction: true,
-//     type: 'medium',
-//     length: 2
-//   },
-//   {
-//     position: { x: 5, y: 3 },
-//     direction: true,
-//     type: 'small',
-//     length: 1
-//   },
-//   {
-//     position: { x: 3, y: 3 },
-//     direction: true,
-//     type: 'small',
-//     length: 1
-//   },
-//   {
-//     position: { x: 8, y: 1 },
-//     direction: false,
-//     type: 'small',
-//     length: 1
-//   },
-//   {
-//     position: { x: 8, y: 3 },
-//     direction: true,
-//     type: 'small',
-//     length: 1
-//   }
+//
 // ]
