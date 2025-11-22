@@ -92,13 +92,8 @@ export class GameManager {
 
 		const game = this.games.get(gameId)
 
-		if (!game) {
-			return
-		}
-
-		if (game.currentPlayer !== indexPlayer) {
-			return
-		}
+		if (!game) return
+		if (game.currentPlayer !== indexPlayer) return
 
 		const currentPlayer = game.players.find(
 			player => player.indexPlayer === indexPlayer
@@ -108,9 +103,7 @@ export class GameManager {
 			player => player.indexPlayer !== indexPlayer
 		)
 
-		if (!currentPlayer || !enemyPlayer) {
-			return
-		}
+		if (!currentPlayer || !enemyPlayer) return
 
 		const cellAttack = { x, y }
 
@@ -144,29 +137,23 @@ export class GameManager {
 
 	private checkHit(ships: Ship[], cellAttack: { x: number; y: number }) {
 		for (const ship of ships) {
-			if (!ship.hits) {
-				ship.hits = new Set()
-			}
-
 			const shipCells = this.getShipCells(ship)
 
 			const hitCell = shipCells.find(
 				cell => cell.x === cellAttack.x && cell.y === cellAttack.y
 			)
 
-			if (hitCell) {
-				const cellKey = `${cellAttack.x}, ${cellAttack.y}`
+			if (!hitCell) continue
 
-				console.log(ship.hits)
-				console.log(cellKey)
-				if (ship.hits.has(cellKey)) {
-					return 'shot'
-				}
+			if (!ship.hits) ship.hits = new Set()
+
+			const cellKey = `${cellAttack.x}, ${cellAttack.y}`
+
+			if (hitCell) {
+				if (ship.hits.has(cellKey)) return 'already_hit'
 
 				ship.hits.add(cellKey)
-
 				const isKilled = ship.hits.size === ship.length
-
 				return isKilled ? 'killed' : 'shot'
 			}
 		}
@@ -176,40 +163,15 @@ export class GameManager {
 
 	private getShipCells(ship: Ship): Array<{ x: number; y: number }> {
 		const shipCells = []
+		const { x, y } = ship.position
 
-		if (ship.direction) {
-			// vertical placement
-			for (let i = 0; i < ship.length; i++) {
-				shipCells.push({
-					x: ship.position.x,
-					y: ship.position.y + i,
-				})
-			}
-		} else {
-			//  horizontal placement
-			for (let i = 0; i < ship.length; i++) {
-				shipCells.push({
-					x: ship.position.x + i,
-					y: ship.position.y,
-				})
-			}
+		for (let i = 0; i < ship.length; i++) {
+			shipCells.push({
+				x: ship.direction ? x : x + i,
+				y: ship.direction ? y + i : y,
+			})
 		}
+
 		return shipCells
 	}
 }
-
-// [
-// {
-//   position: { x: 3, y: 5 },
-//   direction: true, NOS
-//   type: 'huge',
-//   length: 4
-// },
-// {
-//   position: { x: 4, y: 1 },
-//   direction: false, ASS
-//   type: 'large',
-//   length: 3
-// },
-//
-// ]
