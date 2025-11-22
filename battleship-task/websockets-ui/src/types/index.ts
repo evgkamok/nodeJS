@@ -46,7 +46,7 @@ export interface AddShipData {
 }
 
 // GAME ATTACK
-interface PlayerInGame {
+export interface PlayerInGame {
 	indexPlayer: number
 	ships: Ship[]
 	ws: WebSocket
@@ -54,6 +54,7 @@ interface PlayerInGame {
 
 export interface Game {
 	gameId: string
+	roomId: string
 	players: PlayerInGame[]
 	currentPlayer: number
 }

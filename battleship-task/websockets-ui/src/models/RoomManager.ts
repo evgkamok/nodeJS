@@ -7,7 +7,7 @@ export class RoomManager {
 	private rooms: Map<string, Room> = new Map()
 
 	createRoom(playerRoomCreator: Player, context: ServerContext) {
-		const roomId = randomUUID().substring(0, 6)
+		const roomId = randomUUID().substring(0, 8)
 		const { name, index } = playerRoomCreator
 
 		const room: Room = {
@@ -22,9 +22,14 @@ export class RoomManager {
 		console.log(`Room ${roomId}, has been created by player - ${name}`)
 	}
 
+	closeRoom(roomId: string, wss: WebSocketServer) {
+		this.rooms.delete(roomId)
+		this.sendRoomUpdate(wss)
+	}
+
 	sendRoomUpdate(wss: WebSocketServer): void {
 		const roomsWithOnePlayer: Room[] = []
-
+		console.log('UPDATE ROOM')
 		for (const room of this.rooms.values()) {
 			if (room.roomUsers.length === 1) {
 				roomsWithOnePlayer.push({

@@ -1,7 +1,13 @@
-import { AddShipData, AttackData, Room, Ship } from '../types/index.js'
+import {
+	AddShipData,
+	AttackData,
+	PlayerInGame,
+	Room,
+	Ship,
+} from '../types/index.js'
 import { randomUUID } from 'crypto'
 import { Game } from '../types/index.js'
-import { WebSocket } from 'ws'
+import { WebSocket, WebSocketServer } from 'ws'
 import { PlayerManager } from './PlayerManager.js'
 import { ServerContext } from '../ServerContext.js'
 
@@ -32,10 +38,12 @@ export class GameManager {
 
 	readyToPlayGame(shipData: AddShipData, ws: WebSocket) {
 		const { gameId, ships, indexPlayer } = shipData
-
+		let roomId = ''
 		const existingGame = this.games.get(gameId)
 
 		if (existingGame) {
+			roomId = existingGame.roomId
+
 			existingGame.players.push({
 				indexPlayer,
 				ships,
@@ -52,6 +60,7 @@ export class GameManager {
 		} else {
 			this.games.set(gameId, {
 				gameId,
+				roomId,
 				players: [
 					{
 						indexPlayer,
@@ -87,7 +96,7 @@ export class GameManager {
 		ws.send(JSON.stringify(turnMessage))
 	}
 
-	sendAttack(attackData: AttackData, serverContext: ServerContext) {
+	sendAttack(attackData: AttackData, context: ServerContext) {
 		const { x, y, gameId, indexPlayer } = attackData
 
 		const game = this.games.get(gameId)
@@ -122,7 +131,7 @@ export class GameManager {
 		currentPlayer.ws.send(JSON.stringify(attackMessage))
 		enemyPlayer.ws.send(JSON.stringify(attackMessage))
 
-		const isHit = attackResult === 'killed' || 'shot'
+		const isHit = attackResult === 'killed' || attackResult === 'shot'
 		const nexPlayer = isHit
 			? currentPlayer.indexPlayer
 			: enemyPlayer.indexPlayer
@@ -132,6 +141,10 @@ export class GameManager {
 
 		if (!isHit) {
 			game.currentPlayer = enemyPlayer.indexPlayer
+		}
+
+		if (attackResult === 'killed') {
+			this.checkFinishGame(game, currentPlayer, enemyPlayer, context)
 		}
 	}
 
@@ -159,6 +172,36 @@ export class GameManager {
 		}
 
 		return 'miss'
+	}
+
+	private checkFinishGame(
+		game: Game,
+		currentPlayer: PlayerInGame,
+		enemyPlayer: PlayerInGame,
+		context: ServerContext
+	) {
+		const isFinishedGame = enemyPlayer.ships.every(
+			ship => ship.length === ship.hits?.size
+		)
+
+		if (isFinishedGame) {
+			const finishGameMessage = {
+				type: 'finish',
+				data: JSON.stringify({
+					winPlayer: currentPlayer.indexPlayer,
+				}),
+				id: 0,
+			}
+
+			game.players.forEach(player => {
+				player.ws.send(JSON.stringify(finishGameMessage))
+			})
+
+			this.games.delete(game.gameId)
+			context.roomManager.closeRoom(game.roomId, context.wss)
+		}
+
+		return
 	}
 
 	private getShipCells(ship: Ship): Array<{ x: number; y: number }> {
