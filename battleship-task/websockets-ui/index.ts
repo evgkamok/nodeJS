@@ -1,17 +1,14 @@
 import { httpServer } from './src/http_server/index.js'
-import WebSocket, { WebSocketServer } from 'ws'
-import { ClientMessage } from './src/types/index.js'
+import { WebSocketServer } from 'ws'
+import { Message } from './src/types/index.js'
 
-import { registrationUserHandler } from './src/handlers/registrationHandler.js'
+import { regUserHandler } from './src/handlers/regUserHandler.js'
 import { createRoomHandler } from './src/handlers/createRoomHandler.js'
 import { addPlayerToRoomHandler } from './src/handlers/addUserToRoomHandler.js'
 import { addShipsHandler } from './src/handlers/addShipsHandler.js'
 import { attackHandler } from './src/handlers/attackHandler.js'
 
-import { PlayerManager } from './src/models/PlayerManager.js'
-import { GameManager } from './src/models/GameManager'
-import { RoomManager } from './src/models/RoomManager.js'
-import { ServerContext } from './src/ServerContext.js'
+import { DB } from './src/store/store.js'
 
 const HTTP_PORT = 8181
 const WS_PORT = 3000
@@ -20,45 +17,47 @@ console.log(`🚀 Start static http server on the ${HTTP_PORT} port!`)
 httpServer.listen(HTTP_PORT)
 
 const wss = new WebSocketServer({ port: WS_PORT })
+DB.wss = wss
 console.log(`🚀 Start ws-server launched on the ws://localhost:${WS_PORT}`)
 
-const playerManager = new PlayerManager()
-const roomManager = new RoomManager()
-const gameManager = new GameManager()
+// const playerManager = new PlayerManager()
+// const roomManager = new RoomManager()
+// const gameManager = new GameManager()
 
-const serverContext = new ServerContext(
-	wss,
-	playerManager,
-	roomManager,
-	gameManager
-)
+// const serverContext = new ServerContext(
+// 	wss,
+// 	playerManager,
+// 	roomManager,
+// 	gameManager
+// )
 
 wss.on('connection', ws => {
-	console.log('New client connected...')
+	console.log('모 new client connected...')
+	DB.ws.set('ws', ws)
 
 	ws.on('message', data => {
-		const message: ClientMessage = JSON.parse(data.toString())
+		const clientMessage: Message = JSON.parse(data.toString())
 
-		console.log(`Received type - ${message.type}`)
+		console.log(`received type ➤ ${clientMessage.type}`)
 
-		switch (message.type) {
+		switch (clientMessage.type) {
 			case 'reg':
-				registrationUserHandler(message, ws, serverContext)
+				regUserHandler(clientMessage, DB, ws)
 				break
-			case 'create_room':
-				createRoomHandler(ws, serverContext)
-				break
-			case 'add_user_to_room':
-				addPlayerToRoomHandler(message, ws, serverContext)
-				break
-			case 'add_ships':
-				addShipsHandler(message, ws, serverContext)
-				break
-			case 'attack':
-				attackHandler(message, ws, serverContext)
-				break
+			// case 'create_room':
+			// 	createRoomHandler(ws, serverContext)
+			// 	break
+			// case 'add_user_to_room':
+			// 	addPlayerToRoomHandler(message, ws, serverContext)
+			// 	break
+			// case 'add_ships':
+			// 	addShipsHandler(message, ws, serverContext)
+			// 	break
+			// case 'attack':
+			// 	attackHandler(message, ws, serverContext)
+			// 	break
 			default:
-				console.log(`Unknown type - ${message.type}`)
+				console.log(`Unknown type - ${clientMessage.type}`)
 		}
 	})
 

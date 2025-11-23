@@ -1,14 +1,21 @@
 import { WebSocket } from 'ws'
 
-export interface ClientMessage {
+export type Message = {
 	type: string
 	data: string
 	id: number
 }
 
-export interface RegistrationData {
+export type UserRegisterRequest = {
 	name: string
 	password: string
+}
+
+export type User = {
+	index: string
+	name: string
+	password: string
+	ws: WebSocket
 }
 
 export interface Player {

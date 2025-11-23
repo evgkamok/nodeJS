@@ -1,0 +1,23 @@
+import { StoreDb } from '../store/store.js'
+import { Message, Player, UserRegisterRequest } from '../types/index.js'
+import { WebSocket } from 'ws'
+import { randomUUID } from 'crypto'
+
+export function regUserHandler(
+	message: Message,
+	DB: StoreDb,
+	ws: WebSocket
+) {
+	const regData: UserRegisterRequest = JSON.parse(message.data)
+	const { name, password } = regData
+	const isNameTaken = DB.usersManager.isNameTaken(name)
+
+	if (!isNameTaken) {
+		const userIndex = randomUUID().substring(0, 8)
+		DB.usersManager.regNewUser(userIndex, name, password, ws)
+	} else {
+		DB.usersManager.regNewUserError(name, 'This name already exists', ws)
+	}
+
+	// context.roomManager.sendRoomUpdate(context.wss)
+}
