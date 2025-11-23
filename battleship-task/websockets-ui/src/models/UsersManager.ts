@@ -28,7 +28,7 @@ export class UsersManager {
 			id: 0,
 		}
 
-		console.log(`${username} - user successfully authorized`)
+		console.log(`< ${username} > - user successfully authorized`)
 		ws.send(JSON.stringify(regMessage))
 	}
 
@@ -54,5 +54,15 @@ export class UsersManager {
 			}
 		}
 		return false
+	}
+
+	getUserByWs(ws: WebSocket) {
+		for (const user of this.users.values()) {
+			if (user.ws === ws) {
+				return user
+			}
+		}
+
+		return
 	}
 }

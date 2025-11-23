@@ -1,17 +1,12 @@
+import { StoreDb } from './../store/store.js'
 import { WebSocket } from 'ws'
-import { ServerContext } from '../ServerContext.js'
+import { User } from '../types/index.js'
 
-export function createRoomHandler(
-	ws: WebSocket,
-	context: ServerContext
-): void {
-	try {
-		const playerRoomCreator = context.playerManager.getPlayerByWs(ws)
+export function createRoomHandler(DB: StoreDb, ws: WebSocket) {
+	const user: User | undefined = DB.usersManager.getUserByWs(ws)
 
-		if (playerRoomCreator) {
-			context.roomManager.createRoom(playerRoomCreator, context)
-		}
-	} catch (error) {
-		console.log('Create room error - ', error)
+	if (user && DB.wss) {
+		DB.roomManager.createRoom(user)
+		DB.roomManager.updateRoom(DB.wss)
 	}
 }

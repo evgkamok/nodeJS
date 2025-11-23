@@ -13,12 +13,12 @@ import { DB } from './src/store/store.js'
 const HTTP_PORT = 8181
 const WS_PORT = 3000
 
-console.log(`🚀 Start static http server on the ${HTTP_PORT} port!`)
+console.log(`🚀 start static http server on the ${HTTP_PORT} port!`)
 httpServer.listen(HTTP_PORT)
 
 const wss = new WebSocketServer({ port: WS_PORT })
 DB.wss = wss
-console.log(`🚀 Start ws-server launched on the ws://localhost:${WS_PORT}`)
+console.log(`🚀 start ws-server launched on the ws://localhost:${WS_PORT}`)
 
 // const playerManager = new PlayerManager()
 // const roomManager = new RoomManager()
@@ -44,9 +44,9 @@ wss.on('connection', ws => {
 			case 'reg':
 				regUserHandler(clientMessage, DB, ws)
 				break
-			// case 'create_room':
-			// 	createRoomHandler(ws, serverContext)
-			// 	break
+			case 'create_room':
+				createRoomHandler(DB, ws)
+				break
 			// case 'add_user_to_room':
 			// 	addPlayerToRoomHandler(message, ws, serverContext)
 			// 	break

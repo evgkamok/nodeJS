@@ -19,15 +19,6 @@ export class PlayerManager {
 		return newPlayer
 	}
 
-	loginPlayer(name: string, password: string): Player | undefined {
-		for (const player of this.players.values()) {
-			if (name === player.name && password === player.password) {
-				return player
-			}
-		}
-		return undefined
-	}
-
 	getPlayerById(index: number): Player | undefined {
 		return this.players.get(index)
 	}

@@ -6,6 +6,7 @@ export type Message = {
 	id: number
 }
 
+// USER TYPES
 export type UserRegisterRequest = {
 	name: string
 	password: string
@@ -18,20 +19,20 @@ export type User = {
 	ws: WebSocket
 }
 
-export interface Player {
-	name: string
-	password: string
-	index: number
-	ws: WebSocket
-}
-
 // ROOM TYPES
 export interface Room {
 	roomId: string
 	roomUsers: Array<{
 		name: string
-		index: number
+		index: string
 	}>
+}
+
+export interface Player {
+	name: string
+	password: string
+	index: number
+	ws: WebSocket
 }
 
 // SHIPS TYPES

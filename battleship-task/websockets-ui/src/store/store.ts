@@ -10,7 +10,7 @@ export type StoreDb = {
 	roomManager: RoomManager
 	gameManager: GameManager
 	ws: Map<string, WebSocket>
-	wss: WebSocketServer | null
+	wss?: WebSocketServer
 }
 
 export const DB: StoreDb = {
@@ -19,5 +19,4 @@ export const DB: StoreDb = {
 	roomManager: new RoomManager(),
 	gameManager: new GameManager(),
 	ws: new Map<string, WebSocket>(),
-	wss: null,
 }

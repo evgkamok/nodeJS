@@ -12,12 +12,11 @@ export function regUserHandler(
 	const { name, password } = regData
 	const isNameTaken = DB.usersManager.isNameTaken(name)
 
-	if (!isNameTaken) {
+	if (!isNameTaken && DB.wss) {
 		const userIndex = randomUUID().substring(0, 8)
 		DB.usersManager.regNewUser(userIndex, name, password, ws)
+		DB.roomManager.updateRoom(DB.wss)
 	} else {
 		DB.usersManager.regNewUserError(name, 'This name already exists', ws)
 	}
-
-	// context.roomManager.sendRoomUpdate(context.wss)
 }
