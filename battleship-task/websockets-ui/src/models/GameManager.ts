@@ -48,6 +48,7 @@ export class GameManager {
 
 		if (existingGame.playersInGame.length === 2) {
 			const firstPlayerTurn = existingGame.playersInGame[0].indexPlayer
+			existingGame.currentPlayer = firstPlayerTurn
 
 			existingGame.playersInGame.forEach(player => {
 				this.sendTurn(firstPlayerTurn, player.ws)
@@ -78,83 +79,95 @@ export class GameManager {
 		ws.send(JSON.stringify(turnMessage))
 	}
 
-	// sendAttack(attackData: AttackData, context: ServerContext) {
-	// 	const { x, y, gameId, indexPlayer } = attackData
+	sendAttack(attackData: AttackData) {
+		const { x, y, gameId, indexPlayer } = attackData
 
-	// 	const game = this.games.get(gameId)
+		const game = this.games.get(gameId)
 
-	// 	if (!game) return
-	// 	if (game.currentPlayer !== indexPlayer) return
+		if (!game) return
+		if (game.currentPlayer !== indexPlayer) return
 
-	// 	const currentPlayer = game.players.find(
-	// 		player => player.indexPlayer === indexPlayer
-	// 	)
+		const currentPlayer = game.playersInGame.find(
+			player => player.indexPlayer === indexPlayer
+		)
 
-	// 	const enemyPlayer = game.players.find(
-	// 		player => player.indexPlayer !== indexPlayer
-	// 	)
+		const enemyPlayer = game.playersInGame.find(
+			player => player.indexPlayer !== indexPlayer
+		)
 
-	// 	if (!currentPlayer || !enemyPlayer) return
+		if (!currentPlayer || !enemyPlayer) return
 
-	// 	const cellAttack = { x, y }
+		const cellAttack = { x, y }
 
-	// 	const attackResult = this.checkHit(enemyPlayer.ships, cellAttack)
+		const attackResult = this.checkHit(enemyPlayer.ships, cellAttack)
 
-	// 	const attackMessage = {
-	// 		type: 'attack',
-	// 		data: JSON.stringify({
-	// 			position: cellAttack,
-	// 			currentPlayer: currentPlayer.indexPlayer,
-	// 			status: attackResult,
-	// 		}),
-	// 		id: 0,
-	// 	}
+		const attackMessage = {
+			type: 'attack',
+			data: JSON.stringify({
+				position: cellAttack,
+				currentPlayer: currentPlayer.indexPlayer,
+				status: attackResult,
+			}),
+			id: 0,
+		}
 
-	// 	currentPlayer.ws.send(JSON.stringify(attackMessage))
-	// 	enemyPlayer.ws.send(JSON.stringify(attackMessage))
+		currentPlayer.ws.send(JSON.stringify(attackMessage))
+		enemyPlayer.ws.send(JSON.stringify(attackMessage))
 
-	// 	const isHit = attackResult === 'killed' || attackResult === 'shot'
-	// 	const nexPlayer = isHit
-	// 		? currentPlayer.indexPlayer
-	// 		: enemyPlayer.indexPlayer
+		const isHit = attackResult === 'killed' || attackResult === 'shot'
+		const nextPlayer = isHit
+			? currentPlayer.indexPlayer
+			: enemyPlayer.indexPlayer
 
-	// 	this.sendTurn(currentPlayer.ws, nexPlayer)
-	// 	this.sendTurn(enemyPlayer.ws, nexPlayer)
+		this.sendTurn(nextPlayer, currentPlayer.ws)
+		this.sendTurn(nextPlayer, enemyPlayer.ws)
 
-	// 	if (!isHit) {
-	// 		game.currentPlayer = enemyPlayer.indexPlayer
-	// 	}
+		if (!isHit) {
+			game.currentPlayer = enemyPlayer.indexPlayer
+		}
 
-	// 	if (attackResult === 'killed') {
-	// 		this.checkFinishGame(game, currentPlayer, enemyPlayer, context)
-	// 	}
-	// }
+		// if (attackResult === 'killed') {
+		// 	this.checkFinishGame(game, currentPlayer, enemyPlayer, context)
+		// }
+	}
 
-	// private checkHit(ships: Ship[], cellAttack: { x: number; y: number }) {
-	// 	for (const ship of ships) {
-	// 		const shipCells = this.getShipCells(ship)
+	private checkHit(ships: Ship[], cellAttack: { x: number; y: number }) {
+		for (const ship of ships) {
+			const shipCells = this.getShipCells(ship)
 
-	// 		const hitCell = shipCells.find(
-	// 			cell => cell.x === cellAttack.x && cell.y === cellAttack.y
-	// 		)
+			const isHit = shipCells.some(
+				cell => cell.x === cellAttack.x && cell.y === cellAttack.y
+			)
+			if (!isHit) continue
 
-	// 		if (!hitCell) continue
+			if (!ship.hits) ship.hits = new Set()
 
-	// 		if (!ship.hits) ship.hits = new Set()
+			const cellKey = `${cellAttack.x}, ${cellAttack.y}`
 
-	// 		const cellKey = `${cellAttack.x}, ${cellAttack.y}`
+			if (ship.hits.has(cellKey)) return 'already_hit'
 
-	// 		if (hitCell) {
-	// 			if (ship.hits.has(cellKey)) return 'already_hit'
+			ship.hits.add(cellKey)
 
-	// 			ship.hits.add(cellKey)
-	// 			const isKilled = ship.hits.size === ship.length
-	// 			return isKilled ? 'killed' : 'shot'
-	// 		}
-	// 	}
+			const isKilled = ship.hits.size === ship.length
+			return isKilled ? 'killed' : 'shot'
+		}
 
-	// 	return 'miss'
-	// }
+		return 'miss'
+	}
+
+	private getShipCells(ship: Ship): Array<{ x: number; y: number }> {
+		const shipCells = []
+		const { x, y } = ship.position
+
+		for (let i = 0; i < ship.length; i++) {
+			shipCells.push({
+				x: ship.direction ? x : x + i,
+				y: ship.direction ? y + i : y,
+			})
+		}
+
+		return shipCells
+	}
 
 	// private checkFinishGame(
 	// 	game: Game,
@@ -184,19 +197,5 @@ export class GameManager {
 	// 	}
 
 	// 	return
-	// }
-
-	// private getShipCells(ship: Ship): Array<{ x: number; y: number }> {
-	// 	const shipCells = []
-	// 	const { x, y } = ship.position
-
-	// 	for (let i = 0; i < ship.length; i++) {
-	// 		shipCells.push({
-	// 			x: ship.direction ? x : x + i,
-	// 			y: ship.direction ? y + i : y,
-	// 		})
-	// 	}
-
-	// 	return shipCells
 	// }
 }

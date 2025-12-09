@@ -1,13 +1,13 @@
-import { ServerContext } from './../ServerContext.js'
 import { WebSocket } from 'ws'
-import { AttackData, ClientMessage } from '../types/index.js'
+import { AttackData, Message } from '../types/index.js'
+import { StoreDb } from '../store/store.js'
 
 export function attackHandler(
-	message: ClientMessage,
-	ws: WebSocket,
-	serverContext: ServerContext
+	message: Message,
+	DB: StoreDb,
+	ws: WebSocket
 ) {
 	const attackData: AttackData = JSON.parse(message.data)
 
-	serverContext.gameManager.sendAttack(attackData, serverContext)
+	DB.gameManager.sendAttack(attackData)
 }

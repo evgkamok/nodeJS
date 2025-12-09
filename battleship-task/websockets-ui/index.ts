@@ -53,9 +53,9 @@ wss.on('connection', ws => {
 			case 'add_ships':
 				addShipsHandler(clientMessage, DB, ws)
 				break
-			// case 'attack':
-			// 	attackHandler(message, ws, serverContext)
-			// 	break
+			case 'attack':
+				attackHandler(clientMessage, DB, ws)
+				break
 			default:
 				console.log(`Unknown type - ${clientMessage.type}`)
 		}

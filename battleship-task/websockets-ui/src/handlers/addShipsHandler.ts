@@ -14,7 +14,5 @@ export function addShipsHandler(
 		return
 	}
 
-	console.log('HERE')
-
 	DB.gameManager.playerReadyToPlay(shipData, ws)
 }

@@ -61,7 +61,6 @@ export interface Ship {
 }
 
 // GAME ATTACK
-
 export interface AttackData {
 	gameId: string
 	x: number
