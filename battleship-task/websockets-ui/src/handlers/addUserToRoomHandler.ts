@@ -1,19 +1,19 @@
 import { WebSocket } from 'ws'
-import { ServerContext } from '../ServerContext.js'
-import { ClientMessage } from '../types/index.js'
+import { Message } from '../types/index.js'
+import { StoreDb } from '../store/store.js'
 
-export function addPlayerToRoomHandler(
-	message: ClientMessage,
-	ws: WebSocket,
-	context: ServerContext
-): void {
+export function addUserToRoomHandler(
+	message: Message,
+	DB: StoreDb,
+	ws: WebSocket
+) {
 	const { indexRoom } = JSON.parse(message.data)
-	const player = context.playerManager.getPlayerByWs(ws)
+	const user = DB.usersManager.getUserByWs(ws)
 
-	if (!player) {
-		console.log('Add player to room failed. Player not found')
+	if (!user) {
+		console.log(`❌ add user to room failed`)
 		return
 	}
 
-	context.roomManager.addPlayerToRoom(indexRoom, player, context)
+	DB.roomManager.addUserToRoom(indexRoom, user, DB)
 }

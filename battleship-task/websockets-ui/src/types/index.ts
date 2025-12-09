@@ -16,6 +16,7 @@ export type User = {
 	index: string
 	name: string
 	password: string
+	wins?: number
 	ws: WebSocket
 }
 
@@ -28,11 +29,23 @@ export interface Room {
 	}>
 }
 
-export interface Player {
-	name: string
-	password: string
-	index: number
+// GAMES TYPES
+export interface Game {
+	roomId: string
+	playersInGame: PlayerInTheGame[]
+	currentPlayer: string | null
+}
+
+type PlayerInTheGame = {
+	indexPlayer: string
+	ships: Ship[]
 	ws: WebSocket
+}
+
+export interface AddShipData {
+	gameId: string
+	ships: Ship[]
+	indexPlayer: string
 }
 
 // SHIPS TYPES
@@ -47,29 +60,11 @@ export interface Ship {
 	hits?: Set<string>
 }
 
-export interface AddShipData {
-	gameId: string
-	ships: Ship[]
-	indexPlayer: number
-}
-
 // GAME ATTACK
-export interface PlayerInGame {
-	indexPlayer: number
-	ships: Ship[]
-	ws: WebSocket
-}
-
-export interface Game {
-	gameId: string
-	roomId: string
-	players: PlayerInGame[]
-	currentPlayer: number
-}
 
 export interface AttackData {
 	gameId: string
 	x: number
 	y: number
-	indexPlayer: number
+	indexPlayer: string
 }

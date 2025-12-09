@@ -1,4 +1,4 @@
-import WebSocket from 'ws'
+import WebSocket, { WebSocketServer } from 'ws'
 import { Message, User } from '../types/index.js'
 
 export class UsersManager {
@@ -65,4 +65,28 @@ export class UsersManager {
 
 		return
 	}
+
+	getUserById(id: string) {
+		for (const user of this.users.values()) {
+			if (user.index === id) return user
+		}
+		return
+	}
+
+	// updateWinners(wss: WebSocketServer) {
+	// 	const updateMessage = {
+	// 		type: 'update_winners',
+	// 		data: JSON.stringify({
+	// 			name: 'sss',
+	// 			wins: 20,
+	// 		}),
+	// 		id: 0,
+	// 	}
+
+	// 	wss.clients.forEach(user => {
+	// 		if (user.readyState === 1) {
+	// 			user.send(JSON.stringify(updateMessage))
+	// 		}
+	// 	})
+	// }
 }

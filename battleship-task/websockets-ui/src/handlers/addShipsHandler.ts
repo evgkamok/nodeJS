@@ -1,18 +1,20 @@
+import { StoreDb } from './../store/store.js'
 import { WebSocket } from 'ws'
-import { AddShipData, ClientMessage } from '../types/index.js'
-import { ServerContext } from '../ServerContext.js'
+import { AddShipData, Message } from '../types/index.js'
 
 export function addShipsHandler(
-	message: ClientMessage,
-	ws: WebSocket,
-	context: ServerContext
+	message: Message,
+	DB: StoreDb,
+	ws: WebSocket
 ) {
 	const shipData: AddShipData = JSON.parse(message.data)
 
 	if (!shipData) {
-		console.log(`type: add_ships, error receive data`)
+		console.log(`type: add_ships - error receive data`)
 		return
 	}
 
-	context.gameManager.readyToPlayGame(shipData, ws)
+	console.log('HERE')
+
+	DB.gameManager.playerReadyToPlay(shipData, ws)
 }

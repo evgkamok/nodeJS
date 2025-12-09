@@ -4,7 +4,7 @@ import { Message } from './src/types/index.js'
 
 import { regUserHandler } from './src/handlers/regUserHandler.js'
 import { createRoomHandler } from './src/handlers/createRoomHandler.js'
-import { addPlayerToRoomHandler } from './src/handlers/addUserToRoomHandler.js'
+import { addUserToRoomHandler } from './src/handlers/addUserToRoomHandler.js'
 import { addShipsHandler } from './src/handlers/addShipsHandler.js'
 import { attackHandler } from './src/handlers/attackHandler.js'
 
@@ -47,12 +47,12 @@ wss.on('connection', ws => {
 			case 'create_room':
 				createRoomHandler(DB, ws)
 				break
-			// case 'add_user_to_room':
-			// 	addPlayerToRoomHandler(message, ws, serverContext)
-			// 	break
-			// case 'add_ships':
-			// 	addShipsHandler(message, ws, serverContext)
-			// 	break
+			case 'add_user_to_room':
+				addUserToRoomHandler(clientMessage, DB, ws)
+				break
+			case 'add_ships':
+				addShipsHandler(clientMessage, DB, ws)
+				break
 			// case 'attack':
 			// 	attackHandler(message, ws, serverContext)
 			// 	break
