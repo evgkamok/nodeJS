@@ -1,5 +1,5 @@
 task-graphql
-# node_modules/
+resto-booking/node_modules
 # .env
 # dist/
 # .nyc_output/
