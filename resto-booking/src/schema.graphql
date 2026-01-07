@@ -1,9 +1,17 @@
 type Query {
 	hello: String!
 	health: Health!
+	tables: [Table!]!
 }
 
 type Health {
 	status: String!
 	timestamp: String!
+}
+
+type Table {
+	id: ID!
+	tableNumber: String!
+	capacity: Int!
+	status: String!
 }

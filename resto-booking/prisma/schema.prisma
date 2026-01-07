@@ -1,0 +1,17 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Table {
+  id          Int      @id @default(autoincrement())
+  tableNumber String   @unique @map("table_number")
+  capacity    Int
+  status      String   @default("AVAILABLE")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  @@map("tables")
+}

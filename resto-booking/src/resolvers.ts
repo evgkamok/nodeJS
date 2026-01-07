@@ -1,3 +1,5 @@
+import { prisma } from './db.js'
+
 export const resolvers = {
 	Query: {
 		hello: async () => {
@@ -9,5 +11,6 @@ export const resolvers = {
 				timestamp: new Date().toISOString(),
 			}
 		},
+		tables: async () => prisma.table.findMany(),
 	},
 }
