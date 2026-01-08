@@ -15,3 +15,5 @@ type Table {
 	capacity: Int!
 	status: String!
 }
+
+# type Reservation
