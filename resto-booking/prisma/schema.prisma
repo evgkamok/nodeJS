@@ -25,18 +25,18 @@ enum TableStatus {
 }
 
 model Reservation {
-  id       Int   @id @default(autoincrement())
-  table_id Int
-  table    Table @relation(fields: [table_id], references: [id], onDelete: Restrict)
+  id      Int   @id @default(autoincrement())
+  tableId Int   @map("table_id")
+  table   Table @relation(fields: [tableId], references: [id], onDelete: Restrict)
 
   customerName    String            @map("customer_name")
   customerPhone   String            @map("customer_phone")
   reservationDate DateTime          @map("reservation_date")
   guestCount      Int               @map("guest_count")
-  status          ReservationStatus
+  status          ReservationStatus @default(PENDING)
   createAt        DateTime          @default(now()) @map("create_at")
 
-  @@unique([table_id, reservationDate])
+  @@unique([tableId, reservationDate])
   @@map("reservations")
 }
 

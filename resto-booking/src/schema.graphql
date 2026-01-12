@@ -2,6 +2,15 @@ type Query {
 	hello: String!
 	health: Health!
 	tables: [Table!]!
+	availableTables(date: String!, guestCount: Int): [Table!]!
+	reservation(id: ID): Reservation
+
+	reservations: [Reservation!]!
+}
+
+type Mutation {
+	createReservation(input: CreateReservationInput!): Reservation!
+	cancelReservation(id: ID!): Reservation!
 }
 
 type Health {
@@ -13,7 +22,40 @@ type Table {
 	id: ID!
 	tableNumber: String!
 	capacity: Int!
-	status: String!
+	status: TableStatus!
+
+	reservations: [Reservation!]!
 }
 
-# type Reservation
+type Reservation {
+	id: Int!
+	tableId: Table
+	table: Table!
+	customerName: String!
+	customerPhone: String!
+	reservationDate: String!
+	guestCount: Int!
+	status: ReservationStatus!
+}
+
+input CreateReservationInput {
+	tableId: ID!
+	customerName: String!
+	customerPhone: String!
+	reservationDate: String!
+	guestCount: Int!
+}
+
+enum TableStatus {
+	AVAILABLE
+	RESERVED
+	OCCUPIED
+	BLOCKED
+}
+
+enum ReservationStatus {
+	PENDING
+	CONFIRMED
+	CANCELLED
+	COMPLETED
+}
