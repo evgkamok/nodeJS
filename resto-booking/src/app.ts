@@ -3,6 +3,7 @@ import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { resolvers } from './resolvers.js'
 import mercurius from 'mercurius'
+import depthLimit from 'graphql-depth-limit'
 
 const fastify = Fastify({
 	logger: true,
@@ -18,8 +19,11 @@ const schema = readFileSync(
 fastify.register(mercurius, {
 	schema,
 	resolvers,
-	graphiql: true,
+	graphiql: process.env.GRAPHQL_ENABLE_GRAPHIQL === 'true',
 	jit: 1,
+	validationRules: [
+		depthLimit(parseInt(process.env.GRAPHQL_DEPTH_LIMIT || '5')),
+	],
 })
 
 fastify.get('/health', async () => {

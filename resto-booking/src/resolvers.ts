@@ -1,5 +1,11 @@
 import { Prisma } from '@prisma/client'
 import { prisma } from './db.js'
+import {
+	CreateReservationSchema,
+	AvailableTableSchema,
+} from './validators.js'
+import { ValidationError } from './errors.js'
+import { validate } from './utils.js'
 
 export const resolvers = {
 	Query: {
@@ -22,7 +28,15 @@ export const resolvers = {
 			_parent: any,
 			args: { date: string; guestCount: number }
 		) => {
-			const { date, guestCount } = args
+			// Валидация через helper (одна строка!)
+			const { date, guestCount } = validate(AvailableTableSchema, args)
+
+			const requestedDate = new Date(date)
+
+			// Проверка что дата не в прошлом
+			if (requestedDate < new Date()) {
+				throw new ValidationError('Cannot book tables in the past')
+			}
 
 			const tables = await prisma.table.findMany({
 				where: {
@@ -43,6 +57,22 @@ export const resolvers = {
 			})
 
 			return tables.filter(table => table.reservations.length === 0)
+		},
+
+		// TODO: написать резолвер для одной резервации
+		reservation: async (_parent: any, args: { id: string }) => {
+			const reservation = await prisma.reservation.findUnique({
+				where: { id: parseInt(args.id) },
+				include: { table: true },
+			})
+
+			if (!reservation) {
+				throw new ValidationError(
+					`Reservation with ID ${args.id} not found`
+				)
+			}
+
+			return reservation
 		},
 
 		// TODO: временный resolver для меня. Обрати внимание на
@@ -67,7 +97,13 @@ export const resolvers = {
 				customerPhone,
 				reservationDate,
 				guestCount,
-			} = args.input
+			} = validate(CreateReservationSchema, args.input)
+
+			const bookingDate = new Date(reservationDate)
+
+			if (bookingDate < new Date()) {
+				throw new ValidationError('Cannot create reservation in the past')
+			}
 
 			try {
 				const reservation = await prisma.reservation.create({
@@ -98,6 +134,26 @@ export const resolvers = {
 				where: { id: parseInt(args.id) },
 				data: { status: 'CANCELLED' },
 				include: { table: true },
+			})
+		},
+	},
+
+	Table: {
+		// FIXME нужно для parent использовать сгенерированные prisma типы
+		// Нужно по переписывать этот участок кода
+		// Загружаем бронирования ДЛЯ этого стола
+		reservations: async (parent: any) => {
+			return await prisma.reservation.findMany({
+				where: { tableId: parent.id },
+			})
+		},
+	},
+
+	// Загружаем стол ДЛЯ этого бронирования
+	Reservation: {
+		table: async (parent: any) => {
+			return await prisma.table.findUnique({
+				where: { id: parent.tableId },
 			})
 		},
 	},
