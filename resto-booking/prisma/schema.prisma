@@ -34,7 +34,7 @@ model Reservation {
   reservationDate DateTime          @map("reservation_date")
   guestCount      Int               @map("guest_count")
   status          ReservationStatus @default(PENDING)
-  createAt        DateTime          @default(now()) @map("create_at")
+  createAt        DateTime          @default(now()) @map("created_at")
 
   @@unique([tableId, reservationDate])
   @@map("reservations")

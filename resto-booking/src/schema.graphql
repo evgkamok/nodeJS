@@ -2,8 +2,13 @@ type Query {
 	hello: String!
 	health: Health!
 	tables: [Table!]!
+
+	# Prisma version
 	availableTables(date: String!, guestCount: Int): [Table!]!
 	reservation(id: ID): Reservation
+
+	# Raw SQL version
+	availableTablesRaw(date: String!, guestCount: Int): [Table!]!
 
 	reservations: [Reservation!]!
 }

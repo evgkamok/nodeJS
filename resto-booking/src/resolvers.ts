@@ -6,6 +6,7 @@ import {
 } from './validators.js'
 import { ValidationError } from './errors.js'
 import { validate } from './utils.js'
+import { TablesRepositoryRaw } from './repositories/tables-raw.js'
 
 export const resolvers = {
 	Query: {
@@ -57,6 +58,23 @@ export const resolvers = {
 			})
 
 			return tables.filter(table => table.reservations.length === 0)
+		},
+
+		availableTablesRaw: async (
+			_parent: any,
+			args: { date: string; guestCount: number },
+			context: any
+		) => {
+			const { date, guestCount } = validate(AvailableTableSchema, args)
+
+			const requestedDate = new Date(date)
+			if (requestedDate < new Date()) {
+				throw new ValidationError('Cannot book tables in the past')
+			}
+
+			// Используем raw SQL репозиторий
+			const repo = new TablesRepositoryRaw(context.pg)
+			return await repo.findAvailable(requestedDate, guestCount)
 		},
 
 		// TODO: написать резолвер для одной резервации

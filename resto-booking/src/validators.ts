@@ -1,3 +1,4 @@
+import { error } from 'node:console'
 import z from 'zod'
 
 export const CreateReservationSchema = z.object({
@@ -22,7 +23,14 @@ export const CreateReservationSchema = z.object({
 })
 
 export const AvailableTableSchema = z.object({
-	date: z.iso.date('Invalid date format'),
+	// date: z.iso.date('Invalid date format'),
+	date: z
+		.string()
+		.min(1, 'Date is required')
+		.refine(val => !isNaN(Date.parse(val)), {
+			message: 'Invalid date format',
+		})
+		.transform(val => new Date(val)),
 	guestCount: z
 		.number()
 		.int('Guest count must be an integer')
