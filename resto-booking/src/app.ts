@@ -8,7 +8,7 @@ import postgres from '@fastify/postgres'
 
 const ENABLE_GRAPHIQL = process.env.GRAPHQL_ENABLE_GRAPHIQL === 'true'
 const GRAPHQL_DEPTH_LIMIT = parseInt(
-	process.env.GRAPHQL_DEPTH_LIMIT || '5'
+	process.env.GRAPHQL_DEPTH_LIMIT || '5',
 )
 
 const fastify = Fastify({
@@ -18,15 +18,12 @@ const fastify = Fastify({
 // Подключаем PostgreSQL для raw SQL запросов
 fastify.register(postgres, {
 	connectionString: process.env.DATABASE_URL,
-	// log: (query: string) => {
-	// 	fastify.log.info({ query }, '🔍 Raw SQL Query')
-	// },
 })
 
 // Загружаем GraphQL схему из файла
 const schema = readFileSync(
 	join(process.cwd(), 'src/schema.graphql'),
-	'utf-8'
+	'utf-8',
 )
 
 // Подключаем Mercurius с JIT

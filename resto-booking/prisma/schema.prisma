@@ -35,6 +35,7 @@ model Reservation {
   guestCount      Int               @map("guest_count")
   status          ReservationStatus @default(PENDING)
   createAt        DateTime          @default(now()) @map("created_at")
+  guest           Guest[]
 
   @@unique([tableId, reservationDate])
   @@map("reservations")
@@ -45,4 +46,43 @@ enum ReservationStatus {
   CONFIRMED
   CANCELLED
   COMPLETED
+}
+
+model Guest {
+  id            Int         @id @default(autoincrement())
+  reservationId Int         @map("reservation_id")
+  reservation   Reservation @relation(fields: [reservationId], references: [id], onDelete: Cascade)
+  guestNumber   Int         @map("guest_number")
+  orders        Order[]
+  createdAt     DateTime    @map("created_at")
+
+  @@unique([reservationId, guestNumber])
+  @@map("guests")
+}
+
+model Dish {
+  id          Int      @id @default(autoincrement())
+  name        String
+  description String?
+  price       Decimal  @db.Decimal(10, 2)
+  category    String?
+  available   Boolean  @default(true)
+  orders      Order[]
+  createdAt   DateTime @default(now()) @map("create_at")
+
+  @@map("dishes")
+}
+
+model Order {
+  id      Int   @id @default(autoincrement())
+  guestId Int   @map("guest_id")
+  guest   Guest @relation(fields: [guestId], references: [id], onDelete: Cascade)
+
+  dishId Int  @map("dish_id")
+  dish   Dish @relation(fields: [dishId], references: [id], onDelete: Cascade)
+
+  quantity  Int      @default(1)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("orders")
 }
