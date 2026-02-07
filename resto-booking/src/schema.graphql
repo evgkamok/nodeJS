@@ -1,20 +1,34 @@
 type Query {
 	hello: String!
 	health: Health!
-	tables: [Table!]!
 
-	# Prisma version
+	# Tables
+	tables: [Table!]!
 	availableTables(date: String!, guestCount: Int): [Table!]!
-	reservation(id: ID): Reservation
-	# Raw SQL version
 	availableTablesRaw(date: String!, guestCount: Int): [Table!]!
 
+	# Reservations / Bookings
+	reservation(id: ID): Reservation!
 	reservations: [Reservation!]!
+
+	# Menu
+	menu(category: String): [Dish!]!
+	dish(id: ID!): Dish
+
+	# Guest
+	guest(id: Int!): Guest!
+
+	# Order
+	order(id: Int!): Order!
 }
 
 type Mutation {
+	# Reservations / Bookings
 	createReservation(input: CreateReservationInput!): Reservation!
 	cancelReservation(id: ID!): Reservation!
+
+	#Order
+	createOrder(input: CreateOrderInput!): Order!
 }
 
 type Health {
@@ -27,19 +41,45 @@ type Table {
 	tableNumber: String!
 	capacity: Int!
 	status: TableStatus!
-
 	reservations: [Reservation!]!
 }
 
 type Reservation {
 	id: Int!
-	tableId: Table
 	table: Table!
 	customerName: String!
 	customerPhone: String!
 	reservationDate: String!
 	guestCount: Int!
 	status: ReservationStatus!
+	guests: [Guest!]!
+	totalAmount: Float!
+}
+
+type Guest {
+	id: ID!
+	reservation: Reservation!
+	guestNumber: Int!
+	orders: [Order!]!
+	subtotal: Float!
+}
+
+type Dish {
+	id: ID!
+	name: String!
+	description: String
+	price: Float!
+	category: String
+	available: Boolean!
+	orders: [Order!]!
+}
+
+type Order {
+	id: ID!
+	dish: Dish!
+	guest: Guest!
+	quantity: Int!
+	subtotal: Float!
 }
 
 input CreateReservationInput {
@@ -48,6 +88,12 @@ input CreateReservationInput {
 	customerPhone: String!
 	reservationDate: String!
 	guestCount: Int!
+}
+
+input CreateOrderInput {
+	guestId: ID!
+	dishId: ID!
+	quantity: Int!
 }
 
 enum TableStatus {

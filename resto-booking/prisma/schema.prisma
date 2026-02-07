@@ -35,7 +35,7 @@ model Reservation {
   guestCount      Int               @map("guest_count")
   status          ReservationStatus @default(PENDING)
   createAt        DateTime          @default(now()) @map("created_at")
-  guest           Guest[]
+  guests          Guest[]
 
   @@unique([tableId, reservationDate])
   @@map("reservations")
@@ -54,7 +54,7 @@ model Guest {
   reservation   Reservation @relation(fields: [reservationId], references: [id], onDelete: Cascade)
   guestNumber   Int         @map("guest_number")
   orders        Order[]
-  createdAt     DateTime    @map("created_at")
+  createdAt     DateTime    @default(now()) @map("created_at")
 
   @@unique([reservationId, guestNumber])
   @@map("guests")
