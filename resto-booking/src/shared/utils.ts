@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { ValidationError } from './shared/errors.js'
+import { ValidationError } from '../shared/errors.js'
 
 export function validate<T>(schema: z.ZodSchema<T>, data: unknown): T {
 	const result = schema.safeParse(data)
