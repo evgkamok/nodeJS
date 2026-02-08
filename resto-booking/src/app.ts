@@ -42,10 +42,6 @@ fastify.register(mercurius, {
 	},
 })
 
-fastify.get('/health', async () => {
-	return { status: 'ok' }
-})
-
 const start = async () => {
 	try {
 		await fastify.listen({ port: 3000 })

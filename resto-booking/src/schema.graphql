@@ -1,7 +1,4 @@
 type Query {
-	hello: String!
-	health: Health!
-
 	# Tables
 	tables: [Table!]!
 	availableTables(date: String!, guestCount: Int): [Table!]!
@@ -11,15 +8,16 @@ type Query {
 	reservation(id: ID): Reservation!
 	reservations: [Reservation!]!
 
-	# Menu
+	# Dishes
 	menu(category: String): [Dish!]!
 	dish(id: ID!): Dish
+	dishesByCategory(category: String): [Dish!]!
 
-	# Guest
-	guest(id: Int!): Guest!
+	# # Guest
+	# guestOrders(id: Int!): Guest!
 
 	# Order
-	order(id: Int!): Order!
+	guestOrders(guestId: Int!): [Order!]!
 }
 
 type Mutation {
@@ -29,11 +27,6 @@ type Mutation {
 
 	#Order
 	createOrder(input: CreateOrderInput!): Order!
-}
-
-type Health {
-	status: String!
-	timestamp: String!
 }
 
 type Table {
